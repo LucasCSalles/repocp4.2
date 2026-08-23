@@ -1,7 +1,6 @@
 package com.github.lucascsalles.CP22.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,54 +14,57 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.github.lucascsalles.CP22.dto.MarcaCreateRequest;
+import com.github.lucascsalles.CP22.dto.MarcaMapper;
+import com.github.lucascsalles.CP22.dto.MarcaResponse;
+import com.github.lucascsalles.CP22.dto.MarcaUpdateRequest;
 import com.github.lucascsalles.CP22.model.Marca;
-import com.github.lucascsalles.CP22.repository.MarcaRepository;
+import com.github.lucascsalles.CP22.service.MarcaService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/${api.version}/marcas")
 public class MarcaController {
 
-     @Autowired
-    private MarcaRepository repository;
+    @Autowired
+    private MarcaService service;
 
-     @PostMapping
-    public ResponseEntity<Marca> create(@RequestBody Marca marca) {         
-        return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(marca));
+    @Autowired
+    private MarcaMapper marcaMapper;
+
+    @PostMapping
+    public ResponseEntity<MarcaResponse> create (@Valid @RequestBody MarcaCreateRequest dtoRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(marcaMapper.toDto(service.createOrUpdate(marcaMapper.toModel(dtoRequest))));
     }
 
-    @GetMapping("/{id}")    
-    public ResponseEntity<Marca> findById(@PathVariable Long id) { 
-        return repository
-                .findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());        
+    @GetMapping("/{id}")
+    public ResponseEntity<MarcaResponse> findById (@PathVariable Long id) {
+        return service.findById(id).map(marca -> marcaMapper.toDto(marca)).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
-        
-    @GetMapping    
-    public ResponseEntity<List<Marca>> findAll() {        
-        return ResponseEntity.ok(repository.findAll());
+
+    @GetMapping
+    public ResponseEntity<List<MarcaResponse>> findAll () {
+        return ResponseEntity.ok(service.findAll().stream().map(marca -> marcaMapper.toDto(marca)).toList());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Marca> update(@PathVariable Long id, 
-                                @RequestBody Marca marca) {
-
-        Optional<Marca> optCliente = repository.findById(id);
-
-        if (optCliente.isPresent()) {
-            marca.setId(id);
-            Marca clienteAlterado = repository.save(marca);
-            return ResponseEntity.ok(clienteAlterado);
+    public ResponseEntity<MarcaResponse> update (@PathVariable Long id, @Valid @RequestBody MarcaUpdateRequest dtoRequest) {
+        if (service.findById(id).isPresent()) {
+            Marca marcaAtualizada = marcaMapper.toModel(id, dtoRequest);
+            return ResponseEntity.ok(marcaMapper.toDto(service.createOrUpdate(marcaAtualizada)));
         } else {
             return ResponseEntity.notFound().build();
-        }     
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) { 
-        repository.deleteById(id);
-        return ResponseEntity.noContent().build();
- 
+    public ResponseEntity<Void> deleteById (@PathVariable Long id) {
+        if (service.findById(id).isPresent()) {
+            service.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
-
 }
