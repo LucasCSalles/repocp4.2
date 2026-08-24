@@ -1,73 +1,179 @@
-Projeto API Spring Boot
-Descrição
+# CP4.2
 
-API desenvolvida com Spring Boot para gerenciamento de dados.
-Este projeto utiliza banco de dados MySQL rodando em container Docker.
+API REST em Spring Boot para cadastro e consulta de carros e marcas, com persistência em MySQL.
 
-Tecnologias utilizadas
-Java
-Spring Boot
-Maven
-Docker
-MySQL
+## O que este projeto faz
 
-Pré-requisitos
+- expõe endpoints de CRUD para carros e marcas
+- salva os dados no MySQL
+- usa Swagger/OpenAPI para documentação e testes
+- suporta execução via Docker
 
-Antes de começar, você precisa ter instalado:
+---
 
-Java 17+
-Maven
-Docker
+## Requisitos
 
-Abrir o docker (Start docker service) E subir o banco de dados docker
+- Docker
+- Docker Desktop ou Docker Engine funcionando
+- MySQL rodando em container
 
-Subindo o banco de dados com Docker
+---
 
-Execute o comando abaixo para iniciar o MySQL:
+## 1) Subir o MySQL
 
+Execute este comando para subir o banco em container:
+
+```bash
 docker run -d \
   --name mysql \
   --rm \
   -e MYSQL_ROOT_PASSWORD=root_pwd \
   -e MYSQL_USER=new_user \
   -e MYSQL_PASSWORD=my_pwd \
-  -e MYSQL_DATABASE=my_db \
   -p 3306:3306 \
-  mysql:8
+  mysql
+```
 
-🔧 Configuração da aplicação
+Esse comando cria o MySQL e expõe a porta `3306`.
 
-No arquivo application.properties configure:
+> O banco `dbdev` pode ser criado automaticamente pela aplicação, conforme a configuração do datasource.
 
-spring.datasource.url=jdbc:mysql://localhost:3306/my_db
-spring.datasource.username=root
-spring.datasource.password=root_pwd
-spring.jpa.hibernate.ddl-auto=update
+---
 
-Observações:
+## 2) Build da imagem da aplicação
 
-Porta: 3306
-Banco criado: my_db
-Usuário: root
-Senha: root_pwd
-(Pode ser alterado pelo application.properties)
+Na raiz do projeto:
 
+```bash
+docker build -t cp4.2:1.1 .
+```
 
-Rodando a aplicação
+---
 
-Na raiz do projeto, execute:
+## 3) Variáveis de ambiente
 
-mvn spring-boot:run
+No Windows PowerShell, defina:
 
-Testando a API
+```powershell
+$env:DB_SERVER_URL="localhost"
+$env:DB_SERVER_PORT="3306"
+$env:DB_SCHEMA="dbprd"
+$env:DB_USER="root"
+$env:DB_PWD="root_pwd"
+$env:SPRING_PROFILES_ACTIVE="dev"
+```
 
-Após subir a aplicação, ela estará disponível em:
+Essas variáveis são usadas pela aplicação para conectar ao MySQL e selecionar o profile ativo.
 
-http://localhost:8080
+---
 
-Para parar o banco:
+## 4) Rodar a aplicação em Docker
 
-docker stop mysql
-Observações finais
-Certifique-se de que a porta 3306 não está sendo usada.
-Aguarde alguns segundos após subir o container para o MySQL inicializar completamente.
+```bash
+docker run \
+  -p 8080:8080 \
+  -e DB_SERVER_URL=host.docker.internal \
+  -e DB_SERVER_PORT=3306 \
+  -e DB_SCHEMA=dbdev \
+  -e DB_USER=root \
+  -e DB_PWD=root_pwd \
+  -e SPRING_PROFILES_ACTIVE=dev \
+  cp4.2:1.1
+```
+
+### Observações
+
+- `host.docker.internal` é usado para acessar o MySQL que está rodando na máquina host
+- `SPRING_PROFILES_ACTIVE=dev` ativa o profile de desenvolvimento
+- `DB_SCHEMA=dbdev` é o schema que a aplicação vai utilizar
+
+---
+
+## ⚙️ Profiles do Spring Boot
+
+O profile ativo da aplicação é definido através da variável de ambiente:
+
+```bash
+SPRING_PROFILES_ACTIVE
+```
+
+### Desenvolvimento
+
+Para executar utilizando o profile `dev`:
+
+```bash
+export SPRING_PROFILES_ACTIVE=dev
+```
+
+### Produção
+
+Para executar utilizando o profile `prd`:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prd
+```
+
+Ao executar com Docker:
+
+```bash
+docker run \
+  -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prd \
+  study-api:1.1
+```
+
+---
+
+## 5) Acesso
+
+### Swagger/OpenAPI
+
+```text
+http://localhost:8080/
+```
+
+### API
+
+```text
+http://localhost:8080/api/v1/carros
+http://localhost:8080/api/v1/marcas
+```
+
+---
+
+## 6) Endpoints principais
+
+### Carros
+
+```text
+GET    /api/v1/carros
+GET    /api/v1/carros/{id}
+POST   /api/v1/carros
+PUT    /api/v1/carros/{id}
+DELETE /api/v1/carros/{id}
+```
+
+### Marcas
+
+```text
+GET    /api/v1/marcas
+GET    /api/v1/marcas/{id}
+POST   /api/v1/marcas
+PUT    /api/v1/marcas/{id}
+DELETE /api/v1/marcas/{id}
+```
+
+---
+
+## 7) Importante
+
+- a aplicação depende do banco MySQL estar disponível antes de subir
+- o projeto usa o profile `dev`
+- o Docker daemon precisa estar em execução
+- em caso de erro de conexão, verifique o MySQL e as variáveis de ambiente
+
+---
+
+## Integrantes
+
+- Lucas Salles RM554789
