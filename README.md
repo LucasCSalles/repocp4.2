@@ -1,179 +1,114 @@
-# CP4.2
+CP5
 
-API REST em Spring Boot para cadastro e consulta de carros e marcas, com persistência em MySQL.
+API REST em Spring Boot para cadastro e consulta de carros e marcas, utilizando SQL Server para persistência dos dados.
 
-## O que este projeto faz
+O que o projeto faz
 
-- expõe endpoints de CRUD para carros e marcas
-- salva os dados no MySQL
-- usa Swagger/OpenAPI para documentação e testes
-- suporta execução via Docker
+Cadastro, consulta, atualização e exclusão de carros.
 
----
+Cadastro, consulta, atualização e exclusão de marcas.
 
-## Requisitos
+Persistência dos dados em SQL Server.
 
-- Docker
-- Docker Desktop ou Docker Engine funcionando
-- MySQL rodando em container
+Documentação e testes da API através do Swagger/OpenAPI.
 
----
+Requisitos
 
-## 1) Subir o MySQL
+Java
 
-Execute este comando para subir o banco em container:
+Docker
 
-```bash
+Docker em execução
+
+1. Subir o SQL Server
+
+Execute no terminal:
+
 docker run -d \
-  --name mysql \
+  --name sqlserver \
   --rm \
-  -e MYSQL_ROOT_PASSWORD=root_pwd \
-  -e MYSQL_USER=new_user \
-  -e MYSQL_PASSWORD=my_pwd \
-  -p 3306:3306 \
-  mysql
-```
+  -e MSSQL_SA_PASSWORD=1q2w3e4R@ \
+  -e "ACCEPT_EULA=Y" \
+  -p 1433:1433 \
+  mcr.microsoft.com/mssql/server:latest
 
-Esse comando cria o MySQL e expõe a porta `3306`.
 
-> O banco `dbdev` pode ser criado automaticamente pela aplicação, conforme a configuração do datasource.
+O SQL Server ficará disponível na porta 1433.
 
----
+As credenciais utilizadas são:
 
-## 2) Build da imagem da aplicação
+Usuário: sa
+Senha: 1q2w3e4R@
+Porta: 1433
 
-Na raiz do projeto:
+2. Rodar o projeto
 
-```bash
-docker build -t cp4.2:1.1 .
-```
+Com o SQL Server em execução, abra o PowerShell na raiz do projeto e execute:
 
----
+.\mvnw spring-boot:run "-Dspring-boot.run.profiles=dev"
 
-## 3) Variáveis de ambiente
 
-No Windows PowerShell, defina:
+Esse comando inicia a aplicação Spring Boot utilizando o profile dev.
 
-```powershell
-$env:DB_SERVER_URL="localhost"
-$env:DB_SERVER_PORT="3306"
-$env:DB_SCHEMA="dbprd"
-$env:DB_USER="root"
-$env:DB_PWD="root_pwd"
-$env:SPRING_PROFILES_ACTIVE="dev"
-```
+Não é necessário executar a aplicação utilizando Docker.
 
-Essas variáveis são usadas pela aplicação para conectar ao MySQL e selecionar o profile ativo.
+3. Acesso
 
----
+Após a aplicação iniciar, ela estará disponível em:
 
-## 4) Rodar a aplicação em Docker
+http://localhost:8080
 
-```bash
-docker run \
-  -p 8080:8080 \
-  -e DB_SERVER_URL=host.docker.internal \
-  -e DB_SERVER_PORT=3306 \
-  -e DB_SCHEMA=dbdev \
-  -e DB_USER=root \
-  -e DB_PWD=root_pwd \
-  -e SPRING_PROFILES_ACTIVE=dev \
-  cp4.2:1.1
-```
-
-### Observações
-
-- `host.docker.internal` é usado para acessar o MySQL que está rodando na máquina host
-- `SPRING_PROFILES_ACTIVE=dev` ativa o profile de desenvolvimento
-- `DB_SCHEMA=dbdev` é o schema que a aplicação vai utilizar
-
----
-
-## ⚙️ Profiles do Spring Boot
-
-O profile ativo da aplicação é definido através da variável de ambiente:
-
-```bash
-SPRING_PROFILES_ACTIVE
-```
-
-### Desenvolvimento
-
-Para executar utilizando o profile `dev`:
-
-```bash
-export SPRING_PROFILES_ACTIVE=dev
-```
-
-### Produção
-
-Para executar utilizando o profile `prd`:
-
-```bash
-export SPRING_PROFILES_ACTIVE=prd
-```
-
-Ao executar com Docker:
-
-```bash
-docker run \
-  -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=prd \
-  study-api:1.1
-```
-
----
-
-## 5) Acesso
-
-### Swagger/OpenAPI
-
-```text
+Swagger/OpenAPI
 http://localhost:8080/
-```
 
-### API
+API
 
-```text
+Carros:
+
 http://localhost:8080/api/v1/carros
+
+
+Marcas:
+
 http://localhost:8080/api/v1/marcas
-```
 
----
-
-## 6) Endpoints principais
-
-### Carros
-
-```text
+4. Endpoints principais
+Carros
 GET    /api/v1/carros
 GET    /api/v1/carros/{id}
 POST   /api/v1/carros
 PUT    /api/v1/carros/{id}
 DELETE /api/v1/carros/{id}
-```
 
-### Marcas
-
-```text
+Marcas
 GET    /api/v1/marcas
 GET    /api/v1/marcas/{id}
 POST   /api/v1/marcas
 PUT    /api/v1/marcas/{id}
 DELETE /api/v1/marcas/{id}
-```
 
----
+5. Ordem para executar
 
-## 7) Importante
+Sempre siga esta ordem:
 
-- a aplicação depende do banco MySQL estar disponível antes de subir
-- o projeto usa o profile `dev`
-- o Docker daemon precisa estar em execução
-- em caso de erro de conexão, verifique o MySQL e as variáveis de ambiente
+1. Subir o SQL Server
+docker run -d \
+  --name sqlserver \
+  --rm \
+  -e MSSQL_SA_PASSWORD=1q2w3e4R@ \
+  -e "ACCEPT_EULA=Y" \
+  -p 1433:1433 \
+  mcr.microsoft.com/mssql/server:latest
 
----
+2. Rodar o projeto
 
-## Integrantes
+No PowerShell, na raiz do projeto:
 
-- Lucas Salles RM554789
+.\mvnw spring-boot:run "-Dspring-boot.run.profiles=dev"
+
+3. Acessar
+http://localhost:8080
+
+Integrante
+
+Lucas Salles RM554789
